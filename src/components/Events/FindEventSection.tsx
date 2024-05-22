@@ -8,11 +8,12 @@ import EventItem, { TEvent } from "./EventItem";
 export default function FindEventSection() {
   const searchElement = useRef<HTMLInputElement>(null);
 
-  const [searchTerm, setSearchTerm] = useState<string | undefined>("");
+  const [searchTerm, setSearchTerm] = useState<string | undefined>();
 
-  const { data, isPending, isError, error } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["events", { search: searchTerm }],
-    queryFn: () => fetchEvents(searchTerm),
+    queryFn: ({ signal }) => fetchEvents({ signal, searchTerm }),
+    enabled: searchTerm !== undefined
   });
 
   function handleSubmit(event: FormEvent) {
@@ -22,7 +23,7 @@ export default function FindEventSection() {
 
   let content = <p>Please enter a search term and to find events.</p>;
 
-  if (isPending) {
+  if (isLoading) {
     content = <LoadingIndicator />;
   }
 
@@ -31,8 +32,8 @@ export default function FindEventSection() {
       <ErrorBlock
         title="Error"
         message={
-          (error as Error & { code: number; info: Record<string, string> }).info
-            ?.message || "Failed to load events"
+          (error as Error & { code: number; info: Record<string, string> }).info?.message ||
+          "Failed to load events"
         }
       />
     );
@@ -55,11 +56,7 @@ export default function FindEventSection() {
       <header>
         <h2>Find your next event!</h2>
         <form onSubmit={handleSubmit} id="search-form">
-          <input
-            type="search"
-            placeholder="Search events"
-            ref={searchElement}
-          />
+          <input type="search" placeholder="Search events" ref={searchElement} />
           <button>Search</button>
         </form>
       </header>
