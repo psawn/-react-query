@@ -1,7 +1,10 @@
-import { ReactNode, useState } from "react";
+import { FormEvent, ReactNode, useState } from "react";
 
 import ImagePicker from "../ImagePicker";
 import { TEvent } from "./EventItem";
+import { useQuery } from "@tanstack/react-query";
+import { fetchSelectableImages } from "../../ultis/http";
+import ErrorBlock from "../UI/ErrorBlock";
 
 export default function EventForm({
   inputData,
@@ -9,22 +12,27 @@ export default function EventForm({
   children,
 }: {
   inputData?: TEvent;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: TEvent) => void;
   children: ReactNode;
 }) {
   const [selectedImage, setSelectedImage] = useState(inputData?.image);
+
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["events-images"],
+    queryFn: fetchSelectableImages,
+  });
 
   function handleSelectImage(image: string) {
     setSelectedImage(image);
   }
 
-  function handleSubmit(event) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData);
+    const formData = new FormData(event.currentTarget);
+    const data = Object.fromEntries(formData) as TEvent;
 
-    onSubmit({ ...data, image: selectedImage });
+    onSubmit({ ...data, image: selectedImage! });
   }
 
   return (
@@ -39,13 +47,19 @@ export default function EventForm({
         />
       </p>
 
-      <div className="control">
-        <ImagePicker
-          images={[]}
-          onSelect={handleSelectImage}
-          selectedImage={selectedImage}
-        />
-      </div>
+      {isPending && <p>Loading images</p>}
+      {isError && (
+        <ErrorBlock title="Failed to load images" message="Try again" />
+      )}
+      {data && (
+        <div className="control">
+          <ImagePicker
+            images={data}
+            onSelect={handleSelectImage}
+            selectedImage={selectedImage}
+          />
+        </div>
+      )}
 
       <p className="control">
         <label htmlFor="description">Description</label>

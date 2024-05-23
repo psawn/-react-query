@@ -5,9 +5,11 @@ import EventItem, { TEvent } from "./EventItem";
 import { fetchEvents } from "../../ultis/http";
 
 export default function NewEventsSection() {
+  const maxEventObj = { max: 2 };
+
   const { data, isPending, isError, error } = useQuery({
-    queryKey: ["events"],
-    queryFn: fetchEvents,
+    queryKey: ["events", maxEventObj],
+    queryFn: ({ signal }) => fetchEvents({ signal, ...maxEventObj }),
     staleTime: 5000, // wait for 5 seconds before send another request
     // gcTime: 30000, // the cached data will be kept 1.5 minutes then it would be discarded
   });

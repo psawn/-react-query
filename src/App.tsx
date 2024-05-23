@@ -7,8 +7,12 @@ import {
 import Events from "./components/Events/Events.js";
 import EventDetails from "./components/Events/EventDetails.js";
 import NewEvent from "./components/Events/NewEvent.js";
-import EditEvent from "./components/Events/EditEvent.js";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import EditEvent, {
+  editEventLoader,
+  editEventAction,
+} from "./components/Events/EditEvent.js";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./ultis/http.js";
 
 const router = createBrowserRouter([
   {
@@ -33,12 +37,12 @@ const router = createBrowserRouter([
       {
         path: "/events/:id/edit",
         element: <EditEvent />,
+        action: editEventAction,
+        loader: editEventLoader,
       },
     ],
   },
 ]);
-
-const queryClient = new QueryClient();
 
 function App() {
   return (
